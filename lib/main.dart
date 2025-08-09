@@ -1,4 +1,3 @@
-import 'package:counter_app/screens/admin_users_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -7,8 +6,10 @@ import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/count_list_screen.dart';
 import 'screens/account_screen.dart';
-import 'screens/admin_login_screen.dart';  // New
-import 'screens/admin_dashboard_screen.dart';  // New
+import 'screens/admin_login_screen.dart';
+import 'screens/admin_dashboard_screen.dart';
+import 'screens/admin_users_screen.dart';
+import 'widgets/admin_route_guard.dart';  // Import the guard
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,14 +37,23 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/login',
       routes: {
+        // User app routes
         '/login': (context) => LoginScreen(),
         '/register': (context) => RegisterScreen(),
         '/dashboard': (context) => DashboardScreen(),
         '/count-list': (context) => CountListScreen(),
         '/account': (context) => AccountScreen(),
+
+        // Admin routes - unprotected login
         '/admin-login': (context) => AdminLoginScreen(),
-        '/admin-dashboard': (context) => AdminDashboardScreen(),
-        '/admin-users': (context) => AdminUsersScreen(),
+
+        // Protected admin routes
+        '/admin-dashboard': (context) => AdminRouteGuard(
+          child: AdminDashboardScreen(),
+        ),
+        '/admin-users': (context) => AdminRouteGuard(
+          child: AdminUsersScreen(),
+        ),
       },
     );
   }

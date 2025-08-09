@@ -1,3 +1,4 @@
+import 'package:counter_app/services/admin_auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/admin_data_service.dart';
@@ -17,6 +18,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   void initState() {
     super.initState();
     _loadUsers();
+    AdminAuthService.extendSession();
   }
 
   void _loadUsers() async {

@@ -21,6 +21,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   void initState() {
     super.initState();
     _loadDashboardData();
+    AdminAuthService.extendSession();
   }
 
   void _loadDashboardData() async {
