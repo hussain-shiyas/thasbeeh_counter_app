@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "757218516360",
+    "firebase_url": "https://thasbeeh-counter-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "thasbeeh-counter",
+    "storage_bucket": "thasbeeh-counter.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:757218516360:android:148676c818240fc6c6ae3d",
+        "android_client_info": {
+          "package_name": "com.example.counter_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOYgsU3mPTyIMIMb2lKjlCg-Qike9P87k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
