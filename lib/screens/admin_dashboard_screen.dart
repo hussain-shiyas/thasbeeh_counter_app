@@ -16,7 +16,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Map<String, dynamic>? _topUserWeek;
   Map<String, dynamic>? _topUserMonth;
   bool _isLoading = true;
-  String _selectedPeriod = 'day';
 
   @override
   void initState() {
@@ -55,14 +54,34 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Admin Dashboard'),
-        backgroundColor: Color(0xFF1565C0),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: _loadDashboardData,
-          ),
+      appBar: _buildAppBar(),
+      drawer: ResponsiveHelper.isMobile(context) ? _buildDrawer() : null,
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : ResponsiveHelper.isMobile(context)
+          ? _buildMobileLayout()
+          : _buildDesktopLayout(),
+    );
+  }
+
+  AppBar _buildAppBar() {
+    return AppBar(
+      title: Text(
+        'Admin Dashboard',
+        style: TextStyle(
+          fontSize: ResponsiveHelper.getTitleFontSize(context),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      backgroundColor: Color(0xFF1565C0),
+      elevation: ResponsiveHelper.isMobile(context) ? 4 : 0,
+      actions: [
+        IconButton(
+          icon: Icon(Icons.refresh),
+          onPressed: _loadDashboardData,
+          tooltip: 'Refresh Data',
+        ),
+        if (!ResponsiveHelper.isMobile(context))
           PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'logout') {
@@ -70,34 +89,246 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               }
             },
             itemBuilder: (BuildContext context) => [
-              PopupMenuItem(value: 'logout', child: Text('Logout')),
+              PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Logout'),
+                  ],
+                ),
+              ),
             ],
+          ),
+      ],
+    );
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1565C0), Color(0xFF2196F3)],
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.admin_panel_settings,
+                  color: Colors.white,
+                  size: 48,
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Admin Panel',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'Thasbeeh Counter',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.dashboard, color: Color(0xFF1565C0)),
+            title: Text('Dashboard'),
+            selected: true,
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.people, color: Color(0xFF1565C0)),
+            title: Text('All Users'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/admin-users');
+            },
+          ),
+          Divider(),
+          ListTile(
+            leading: Icon(Icons.logout, color: Colors.red),
+            title: Text('Logout'),
+            onTap: () {
+              Navigator.pop(context);
+              _logout();
+            },
           ),
         ],
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Container(
-        padding: ResponsiveHelper.getScreenPadding(context),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 1200),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Statistics Cards
-                  _buildStatisticsSection(),
-                  SizedBox(height: 24),
+    );
+  }
 
-                  // Top Users by Period
-                  _buildTopUsersSection(),
-                  SizedBox(height: 24),
+  Widget _buildMobileLayout() {
+    return SingleChildScrollView(
+      padding: ResponsiveHelper.getScreenPadding(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildStatisticsSection(),
+          SizedBox(height: ResponsiveHelper.getSpacing(context)),
+          _buildTopUsersSection(),
+          SizedBox(height: ResponsiveHelper.getSpacing(context)),
+          _buildTop10UsersSection(),
+        ],
+      ),
+    );
+  }
 
-                  // All Users List
-                  _buildAllUsersSection(),
-                ],
+  Widget _buildDesktopLayout() {
+    return Row(
+      children: [
+        // Sidebar (for desktop)
+        if (ResponsiveHelper.isDesktop(context))
+          Container(
+            width: 250,
+            color: Color(0xFFF8F9FA),
+            child: _buildSidebar(),
+          ),
+
+        // Main content
+        Expanded(
+          child: SingleChildScrollView(
+            padding: ResponsiveHelper.getScreenPadding(context),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildStatisticsSection(),
+                SizedBox(height: ResponsiveHelper.getSpacing(context)),
+                _buildTopUsersSection(),
+                SizedBox(height: ResponsiveHelper.getSpacing(context)),
+                _buildTop10UsersSection(),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSidebar() {
+    return Container(
+      padding: EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Logo section
+          Row(
+            children: [
+              Icon(
+                Icons.admin_panel_settings,
+                color: Color(0xFF1565C0),
+                size: 32,
               ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Admin Panel',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1565C0),
+                      ),
+                    ),
+                    Text(
+                      'Thasbeeh Counter',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 32),
+
+          // Navigation items
+          _buildSidebarItem(
+            icon: Icons.dashboard,
+            title: 'Dashboard',
+            isSelected: true,
+            onTap: () {},
+          ),
+          _buildSidebarItem(
+            icon: Icons.people,
+            title: 'All Users',
+            onTap: () => Navigator.pushNamed(context, '/admin-users'),
+          ),
+
+          Spacer(),
+
+          // Logout button
+          _buildSidebarItem(
+            icon: Icons.logout,
+            title: 'Logout',
+            isDestructive: true,
+            onTap: _logout,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSidebarItem({
+    required IconData icon,
+    required String title,
+    bool isSelected = false,
+    bool isDestructive = false,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: isSelected ? Color(0xFF1565C0).withOpacity(0.1) : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  color: isDestructive
+                      ? Colors.red
+                      : isSelected
+                      ? Color(0xFF1565C0)
+                      : Colors.grey[600],
+                  size: 20,
+                ),
+                SizedBox(width: 12),
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: isDestructive
+                        ? Colors.red
+                        : isSelected
+                        ? Color(0xFF1565C0)
+                        : Colors.grey[800],
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -112,62 +343,111 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         Text(
           'Overview Statistics',
           style: TextStyle(
-            fontSize: 24,
+            fontSize: ResponsiveHelper.getTitleFontSize(context),
             fontWeight: FontWeight.bold,
             color: Color(0xFF1565C0),
           ),
         ),
         SizedBox(height: 16),
-        ResponsiveHelper.isMobile(context)
-            ? Column(children: _buildStatCards())
-            : Row(children: _buildStatCards()),
+        _buildResponsiveGrid(
+          children: [
+            _buildStatCard(
+              'Total Users',
+              _dashboardStats['totalUsers']?.toString() ?? '0',
+              Icons.people,
+              Color(0xFF4CAF50),
+            ),
+            _buildStatCard(
+              'Total Counts',
+              NumberFormat('#,###').format(_dashboardStats['totalCounts'] ?? 0),
+              Icons.analytics,
+              Color(0xFF2196F3),
+            ),
+            _buildStatCard(
+              'Today\'s Counts',
+              _dashboardStats['todaysCounts']?.toString() ?? '0',
+              Icons.today,
+              Color(0xFFFF9800),
+            ),
+          ],
+        ),
       ],
     );
   }
 
-  List<Widget> _buildStatCards() {
-    return [
-      Expanded(
-        child: _buildStatCard(
-          'Total Users',
-          _dashboardStats['totalUsers']?.toString() ?? '0',
-          Icons.people,
-          Color(0xFF4CAF50),
+  Widget _buildTopUsersSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Top Users by Period',
+          style: TextStyle(
+            fontSize: ResponsiveHelper.getTitleFontSize(context),
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1565C0),
+          ),
         ),
-      ),
-      SizedBox(width: ResponsiveHelper.isMobile(context) ? 0 : 16, height: ResponsiveHelper.isMobile(context) ? 16 : 0),
-      Expanded(
-        child: _buildStatCard(
-          'Total Counts',
-          NumberFormat('#,###').format(_dashboardStats['totalCounts'] ?? 0),
-          Icons.analytics,
-          Color(0xFF2196F3),
+        SizedBox(height: 16),
+        _buildResponsiveGrid(
+          children: [
+            _buildTopUserCard('Today', _topUserToday, Color(0xFFE91E63)),
+            _buildTopUserCard('This Week', _topUserWeek, Color(0xFF9C27B0)),
+            _buildTopUserCard('This Month', _topUserMonth, Color(0xFF673AB7)),
+          ],
         ),
-      ),
-      SizedBox(width: ResponsiveHelper.isMobile(context) ? 0 : 16, height: ResponsiveHelper.isMobile(context) ? 16 : 0),
-      Expanded(
-        child: _buildStatCard(
-          'Today\'s Counts',
-          _dashboardStats['todaysCounts']?.toString() ?? '0',
-          Icons.today,
-          Color(0xFFFF9800),
-        ),
-      ),
-    ];
+      ],
+    );
+  }
+
+  Widget _buildResponsiveGrid({required List<Widget> children}) {
+    if (ResponsiveHelper.isMobile(context)) {
+      return Column(
+        children: children.map((child) => Container(
+          margin: EdgeInsets.only(bottom: 16),
+          child: child,
+        )).toList(),
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        int columns = ResponsiveHelper.getGridColumns(context);
+        if (children.length < columns) {
+          columns = children.length;
+        }
+
+        return GridView.count(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          crossAxisCount: columns,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: ResponsiveHelper.isTablet(context) ? 1.8 : 2.0,
+          children: children,
+        );
+      },
+    );
   }
 
   Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return Card(
-      elevation: 4,
+      elevation: ResponsiveHelper.isMobile(context) ? 2 : 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: EdgeInsets.all(20),
+        padding: EdgeInsets.all(ResponsiveHelper.isMobile(context) ? 16 : 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, color: color, size: 32),
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: color, size: ResponsiveHelper.isMobile(context) ? 24 : 28),
+                ),
                 Spacer(),
                 Text(
                   value,
@@ -183,7 +463,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             Text(
               title,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: ResponsiveHelper.getBodyFontSize(context),
                 color: Colors.grey[600],
                 fontWeight: FontWeight.w500,
               ),
@@ -194,61 +474,34 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildTopUsersSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Top Users by Period',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1565C0),
-          ),
-        ),
-        SizedBox(height: 16),
-        ResponsiveHelper.isMobile(context)
-            ? Column(children: _buildTopUserCards())
-            : Row(children: _buildTopUserCards()),
-      ],
-    );
-  }
-
-  List<Widget> _buildTopUserCards() {
-    return [
-      Expanded(
-        child: _buildTopUserCard('Today', _topUserToday, Color(0xFFE91E63)),
-      ),
-      SizedBox(width: ResponsiveHelper.isMobile(context) ? 0 : 16, height: ResponsiveHelper.isMobile(context) ? 16 : 0),
-      Expanded(
-        child: _buildTopUserCard('This Week', _topUserWeek, Color(0xFF9C27B0)),
-      ),
-      SizedBox(width: ResponsiveHelper.isMobile(context) ? 0 : 16, height: ResponsiveHelper.isMobile(context) ? 16 : 0),
-      Expanded(
-        child: _buildTopUserCard('This Month', _topUserMonth, Color(0xFF673AB7)),
-      ),
-    ];
-  }
-
   Widget _buildTopUserCard(String period, Map<String, dynamic>? user, Color color) {
     return Card(
-      elevation: 4,
+      elevation: ResponsiveHelper.isMobile(context) ? 2 : 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(ResponsiveHelper.isMobile(context) ? 16 : 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(Icons.star, color: color, size: 24),
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.star, color: color, size: 20),
+                ),
                 SizedBox(width: 8),
-                Text(
-                  period,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: color,
+                Expanded(
+                  child: Text(
+                    period,
+                    style: TextStyle(
+                      fontSize: ResponsiveHelper.getBodyFontSize(context),
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
                   ),
                 ),
               ],
@@ -258,17 +511,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Text(
                 user['name'] ?? 'Unknown',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: ResponsiveHelper.getSubtitleFontSize(context),
                   fontWeight: FontWeight.w600,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               SizedBox(height: 4),
               Text(
                 user['phone'] ?? '',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: ResponsiveHelper.getBodyFontSize(context) - 1,
                   color: Colors.grey[600],
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               SizedBox(height: 8),
               Container(
@@ -278,10 +535,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  '${user['periodCount']} counts',
+                  '${NumberFormat('#,###').format(user['periodCount'])} counts',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: color,
+                    fontSize: ResponsiveHelper.getBodyFontSize(context) - 1,
                   ),
                 ),
               ),
@@ -289,7 +547,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Text(
                 'No data available',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: ResponsiveHelper.getBodyFontSize(context),
                   color: Colors.grey[500],
                   fontStyle: FontStyle.italic,
                 ),
@@ -301,33 +559,47 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildAllUsersSection() {
+  Widget _buildTop10UsersSection() {
+    final top10Users = _allUsers.take(10).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Text(
-              'All Users (Ranked by Total Count)',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1565C0),
+            Expanded(
+              child: Text(
+                'Top 10 Users',
+                style: TextStyle(
+                  fontSize: ResponsiveHelper.getTitleFontSize(context),
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1565C0),
+                ),
               ),
             ),
-            Spacer(),
-            Text(
-              '${_allUsers.length} users',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pushNamed(context, '/admin-users');
+              },
+              icon: Icon(Icons.people, size: 18),
+              label: Text(
+                ResponsiveHelper.isMobile(context)
+                    ? 'View All'
+                    : 'View All ${_allUsers.length} Users',
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF1565C0),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
           ],
         ),
         SizedBox(height: 16),
         Card(
-          elevation: 2,
+          elevation: ResponsiveHelper.isMobile(context) ? 2 : 4,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Column(
             children: [
@@ -343,52 +615,87 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ),
                 child: Row(
                   children: [
-                    Text(
-                      'Rank',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    if (!ResponsiveHelper.isMobile(context)) ...[
+                      Text(
+                        'Rank',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: ResponsiveHelper.getBodyFontSize(context),
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 20),
+                      SizedBox(width: 20),
+                    ],
                     Expanded(
-                      flex: 3,
+                      flex: ResponsiveHelper.isMobile(context) ? 1 : 3,
                       child: Text(
                         'User Details',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: ResponsiveHelper.getBodyFontSize(context),
                         ),
                       ),
                     ),
-                    Expanded(
-                      child: Text(
-                        'Total Count',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                    if (!ResponsiveHelper.isMobile(context))
+                      Expanded(
+                        child: Text(
+                          'Total Count',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: ResponsiveHelper.getBodyFontSize(context),
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                    ),
-                    SizedBox(width: 80),
+                    SizedBox(width: ResponsiveHelper.isMobile(context) ? 60 : 80),
                   ],
                 ),
               ),
 
-              // User List
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: _allUsers.length,
-                itemBuilder: (context, index) {
-                  final user = _allUsers[index];
-                  return _buildUserRow(user, index + 1);
-                },
+              // Users List
+              Column(
+                children: top10Users.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  Map<String, dynamic> user = entry.value;
+                  return _buildResponsiveUserRow(user, index + 1);
+                }).toList(),
               ),
+
+              // Show more button
+              if (_allUsers.length > 10)
+                Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(12),
+                      bottomRight: Radius.circular(12),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/admin-users');
+                        },
+                        icon: Icon(Icons.expand_more),
+                        label: Text(
+                          'Show ${_allUsers.length - 10} more users',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: ResponsiveHelper.getBodyFontSize(context),
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Color(0xFF1565C0),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),
@@ -396,7 +703,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildUserRow(Map<String, dynamic> user, int rank) {
+  Widget _buildResponsiveUserRow(Map<String, dynamic> user, int rank) {
     Color rankColor = rank == 1
         ? Color(0xFFFFD700)
         : rank == 2
@@ -405,6 +712,93 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ? Color(0xFFCD7F32)
         : Colors.grey[600]!;
 
+    if (ResponsiveHelper.isMobile(context)) {
+      return Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Colors.grey[200]!, width: 1),
+          ),
+        ),
+        child: Row(
+          children: [
+            // Rank
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: rankColor,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  '$rank',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: 12),
+
+            // User Details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user['name'] ?? 'Unknown',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    user['phone'] ?? '',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 4),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF1565C0).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '${NumberFormat('#,###').format(user['totalCount'])} counts',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1565C0),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // History Button
+            IconButton(
+              onPressed: () => _showUserHistory(user),
+              icon: Icon(Icons.history, color: Color(0xFF1565C0)),
+              tooltip: 'View History',
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Desktop/Tablet layout
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -443,7 +837,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 Text(
                   user['name'] ?? 'Unknown',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: ResponsiveHelper.getSubtitleFontSize(context),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -451,7 +845,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 Text(
                   user['phone'] ?? '',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: ResponsiveHelper.getBodyFontSize(context),
                     color: Colors.grey[600],
                   ),
                 ),
@@ -474,7 +868,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             child: Text(
               NumberFormat('#,###').format(user['totalCount'] ?? 0),
               style: TextStyle(
-                fontSize: 18,
+                fontSize: ResponsiveHelper.getSubtitleFontSize(context),
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF1565C0),
               ),
@@ -506,8 +900,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Container(
-            width: ResponsiveHelper.isDesktop(context) ? 600 : double.infinity,
-            height: 500,
+            width: ResponsiveHelper.isMobile(context)
+                ? MediaQuery.of(context).size.width * 0.9
+                : ResponsiveHelper.isTablet(context)
+                ? 600
+                : 700,
+            height: ResponsiveHelper.isMobile(context)
+                ? MediaQuery.of(context).size.height * 0.8
+                : 600,
             child: Column(
               children: [
                 // Header
@@ -530,7 +930,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               user['name'] ?? 'Unknown User',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 20,
+                                fontSize: ResponsiveHelper.getTitleFontSize(context),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -538,7 +938,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               user['phone'] ?? '',
                               style: TextStyle(
                                 color: Colors.white70,
-                                fontSize: 14,
+                                fontSize: ResponsiveHelper.getBodyFontSize(context),
                               ),
                             ),
                           ],
@@ -556,12 +956,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 Expanded(
                   child: user['countHistory'].isEmpty
                       ? Center(
-                    child: Text(
-                      'No count history available',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[500],
-                      ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.history,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'No count history available',
+                          style: TextStyle(
+                            fontSize: ResponsiveHelper.getSubtitleFontSize(context),
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
                     ),
                   )
                       : ListView.builder(
@@ -581,11 +992,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             ),
                             child: Center(
                               child: Text(
-                                '${history['count']}',
+                                '${NumberFormat('#,###').format(history['count'])}',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF1565C0),
+                                  fontSize: ResponsiveHelper.isMobile(context) ? 12 : 14,
                                 ),
+                                textAlign: TextAlign.center,
                               ),
                             ),
                           ),
@@ -593,13 +1006,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             DateFormat('MMMM dd, yyyy').format(
                               DateTime.parse(history['date']),
                             ),
-                            style: TextStyle(fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: ResponsiveHelper.getBodyFontSize(context),
+                            ),
                           ),
                           subtitle: Text(
                             DateFormat('EEEE').format(
                               DateTime.parse(history['date']),
                             ),
-                            style: TextStyle(color: Colors.grey[600]),
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: ResponsiveHelper.getBodyFontSize(context) - 2,
+                            ),
                           ),
                         ),
                       );
@@ -623,14 +1042,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       Text(
                         'Total Count:',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: ResponsiveHelper.getSubtitleFontSize(context),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
                         NumberFormat('#,###').format(user['totalCount']),
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: ResponsiveHelper.getTitleFontSize(context),
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF1565C0),
                         ),

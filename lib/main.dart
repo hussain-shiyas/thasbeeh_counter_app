@@ -1,3 +1,4 @@
+import 'package:counter_app/screens/admin_users_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -40,8 +41,9 @@ class MyApp extends StatelessWidget {
         '/dashboard': (context) => DashboardScreen(),
         '/count-list': (context) => CountListScreen(),
         '/account': (context) => AccountScreen(),
-        '/admin-login': (context) => AdminLoginScreen(),  // New
-        '/admin-dashboard': (context) => AdminDashboardScreen(),  // New
+        '/admin-login': (context) => AdminLoginScreen(),
+        '/admin-dashboard': (context) => AdminDashboardScreen(),
+        '/admin-users': (context) => AdminUsersScreen(),
       },
     );
   }
