@@ -1,5 +1,5 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/register_screen.dart';
 import 'screens/login_screen.dart';
@@ -43,10 +43,3 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
-// {
-// "rules": {
-// ".read": "now < 1757269800000",  // 2025-9-8
-// ".write": "now < 1757269800000",  // 2025-9-8
-// }
-// }
