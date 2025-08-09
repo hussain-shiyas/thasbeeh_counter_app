@@ -322,8 +322,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await AuthService.clearLoginState();
     Navigator.pushReplacementNamed(context, '/login');
   }
 }

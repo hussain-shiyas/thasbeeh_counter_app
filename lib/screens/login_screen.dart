@@ -13,6 +13,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isLoading = false;
+  // Remove: bool _stayLoggedIn = true; - No longer needed
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -27,6 +28,18 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
     _animationController.forward();
+
+    // Check if user is already logged in
+    _checkExistingLogin();
+  }
+
+  void _checkExistingLogin() async {
+    bool isLoggedIn = await AuthService.isLoggedIn();
+
+    if (isLoggedIn) {
+      // User is still logged in, navigate to dashboard
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    }
   }
 
   @override
@@ -134,6 +147,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                 ),
                               ),
                             ),
+                            // Remove the entire checkbox Row section
                             SizedBox(height: ResponsiveHelper.isMobile(context) ? 24 : 32),
 
                             // Login Button
@@ -212,16 +226,10 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
       Map<String, dynamic>? userData = await AuthService.loginUser(
         phone: _phoneController.text.trim(),
         password: _passwordController.text,
+        stayLoggedInDays: 30, // Always 30 days, no checkbox needed
       );
 
       if (userData != null) {
-        // Save user data locally for quick access
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('user_id', userData['userId']);
-        await prefs.setString('user_name', userData['name']);
-        await prefs.setString('user_phone', userData['phone']);
-        await prefs.setString('user_house', userData['houseName'] ?? '');
-
         Navigator.pushReplacementNamed(context, '/dashboard');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
