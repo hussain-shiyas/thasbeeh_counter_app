@@ -184,4 +184,43 @@ class AdminDataService {
       };
     }
   }
+
+  // create user
+  static Future<bool> createUser({
+    required String name,
+    required String phone,
+    required String password,
+    String? houseName,
+  }) async {
+    try {
+      // Check if phone already exists
+      DataSnapshot snapshot = await _database
+          .child('users')
+          .orderByChild('phone')
+          .equalTo(phone)
+          .get();
+
+      if (snapshot.exists) {
+        throw Exception('Phone number already registered');
+      }
+
+      // Create new user
+      DatabaseReference newUserRef = _database.child('users').push();
+
+      Map<String, dynamic> userData = {
+        'name': name,
+        'phone': phone,
+        'password': password,
+        'houseName': houseName ?? '',
+        'createdAt': DateTime.now().toIso8601String(),
+      };
+
+      await newUserRef.set(userData);
+      return true;
+    } catch (e) {
+      print('Error creating user: $e');
+      return false;
+    }
+  }
+
 }

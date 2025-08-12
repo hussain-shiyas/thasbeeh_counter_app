@@ -1,3 +1,4 @@
+import 'package:counter_app/screens/admin_create_user_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -53,6 +54,9 @@ class MyApp extends StatelessWidget {
         ),
         '/admin-users': (context) => AdminRouteGuard(
           child: AdminUsersScreen(),
+        ),
+        '/admin-create-user': (context) => AdminRouteGuard(  // New route
+          child: AdminCreateUserScreen(),
         ),
       },
     );

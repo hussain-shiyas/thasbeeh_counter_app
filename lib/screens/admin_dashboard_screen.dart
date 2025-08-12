@@ -160,6 +160,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Navigator.pushNamed(context, '/admin-users');
             },
           ),
+          ListTile(
+            leading: Icon(Icons.person_add, color: Color(0xFF1565C0)),
+            title: Text('Create User'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/admin-create-user');
+            },
+          ),
           Divider(),
           ListTile(
             leading: Icon(Icons.logout, color: Colors.red),
@@ -273,6 +281,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             icon: Icons.people,
             title: 'All Users',
             onTap: () => Navigator.pushNamed(context, '/admin-users'),
+          ),
+          _buildSidebarItem(
+            icon: Icons.person_add,
+            title: 'Create User',
+            onTap: () => Navigator.pushNamed(context, '/admin-create-user'),
           ),
 
           Spacer(),

@@ -224,6 +224,18 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final result = await Navigator.pushNamed(context, '/admin-create-user');
+          if (result == true) {
+            // Refresh user list after successful creation
+            _loadUsers();
+          }
+        },
+        icon: Icon(Icons.person_add),
+        label: Text('Create User'),
+        backgroundColor: Color(0xFF1565C0),
+      ),
     );
   }
 
